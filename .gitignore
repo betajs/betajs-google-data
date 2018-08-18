@@ -1,0 +1,10 @@
+/node_modules
+/temp
+.DS_Store
+.sass-cache
+node_modules
+/docs
+browserstack.json
+BrowserStackLocal
+local-credentials.js
+package-lock.json

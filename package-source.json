@@ -1,0 +1,59 @@
+{
+    "name": "betajs-google-data",
+    "version": "0.0.1",
+    "description": "BetaJS-Google-Data",
+    "homepage": "https://betajs.com",
+    "contributors": [
+        "Oliver Friedmann"
+    ],
+    "devDependencies": {
+        "lodash": "",
+        "grunt": "",
+        "grunt-contrib-jshint": "",
+        "grunt-contrib-concat": "",
+        "grunt-contrib-uglify": "~2.3.0",
+        "grunt-contrib-clean": "",
+        "grunt-preprocess": "",
+        "grunt-closure-tools": "",
+        "qunitjs": "",
+        "grunt-jsdoc": "",
+        "grunt-shell": "",
+        "grunt-template": "",
+        "htmlstrip-native": "",
+        "mailcomposer": "",
+        "betajs-scoped": "~0.0.13",
+        "betajs-compile": "~0.0.28",
+        "betajs": "~1.0.96",
+        "betajs-data": "~1.0.41",
+        "js-beautify": "",
+        "google-contacts": ""
+    },
+    "scripts": {
+        "relink": "npm link betajs && npm link betajs-compile && npm link betajs-scoped && npm link betajs && npm link betajs-data"
+    },
+    "main": "dist/betajs-google-data.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/betajs/betajs-google-data.git"
+    },
+    "meta": {
+        "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
+        "badges": {
+            "codeclimate": true,
+            "travis": false,
+            "npm": true,
+            "gitter": false
+        },
+        "weakDependencies": {
+            "betajs-scoped": "https://github.com/betajs/betajs-scoped"
+        },
+        "dependencies": {
+            "betajs": "https://github.com/betajs/betajs",
+            "betajs-data": "https://github.com/betajs/betajs-data"
+        }
+    },
+    "dependencies": {
+        "@google-cloud/pubsub": "^0.19.0",
+        "googleapis": ""
+    }
+}
