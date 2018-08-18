@@ -6,7 +6,7 @@ Apache-2.0 Software License.
 
 (function () {
 var Scoped = this.subScope();
-Scoped.binding('module', 'global:BetaJS.DataSupport');
+Scoped.binding('module', 'global:BetaJS.Data.Google');
 Scoped.binding('base', 'global:BetaJS');
 Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {

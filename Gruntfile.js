@@ -7,7 +7,7 @@ module.exports = function(grunt) {
 
     /* Compilation */    
 	.scopedclosurerevisionTask("scoped", "src/*/*.js", "dist/betajs-google-data.js", {
-		"module": "global:BetaJS.DataSupport",
+		"module": "global:BetaJS.Data.Google",
 		"base": "global:BetaJS",
 		"data": "global:BetaJS.Data"
     }, {
