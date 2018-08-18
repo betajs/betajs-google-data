@@ -1,4 +1,4 @@
-# betajs-google-data 0.0.1
+# betajs-google-data 0.0.3
 [![Code Climate](https://codeclimate.com/github/betajs/betajs-google-data/badges/gpa.svg)](https://codeclimate.com/github/betajs/betajs-google-data)
 [![NPM](https://img.shields.io/npm/v/betajs-google-data.svg?style=flat)](https://www.npmjs.com/package/betajs-google-data)
 

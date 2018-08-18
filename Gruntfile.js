@@ -3,18 +3,22 @@ module.exports = function(grunt) {
 	var pkg = grunt.file.readJSON('package.json');
 	var gruntHelper = require('betajs-compile');
 
+	var dist = "betajs-google-data";
+
 	gruntHelper.init(pkg, grunt)
 
     /* Compilation */    
-	.scopedclosurerevisionTask("scoped", "src/*/*.js", "dist/betajs-google-data.js", {
+	.scopedclosurerevisionTask("scoped", "src/*/*.js", "dist/" + dist + "-noscoped.js", {
 		"module": "global:BetaJS.Data.Google",
 		"base": "global:BetaJS",
 		"data": "global:BetaJS.Data"
     }, {
     	"base:version": pkg.devDependencies.betajs,
     	"data:version": pkg.devDependencies["betajs-data"]
-    })	
-    .uglifyTask('uglif', 'dist/betajs-google-data.js', 'dist/betajs-google-data.min.js')
+    })
+	.concatTask('concat-scoped', [require.resolve('betajs-scoped'), 'dist/' + dist + '-noscoped.js'], 'dist/' + dist + '.js')
+	.uglifyTask('uglify-noscoped', 'dist/' + dist + '-noscoped.js', 'dist/' + dist + '-noscoped.min.js')
+	.uglifyTask('uglify-scoped', 'dist/' + dist + '.js', 'dist/' + dist + '.min.js')
     .packageTask()
 	.jsbeautifyTask("beautify1", "src/**/*.js")
 
@@ -29,7 +33,7 @@ module.exports = function(grunt) {
 
 	grunt.initConfig(gruntHelper.config);	
 
-	grunt.registerTask('default', ["autoincreasepackage", 'package', 'readme', 'license', 'beautify1', 'scoped', 'uglif', 'lint']);
+	grunt.registerTask('default', ["autoincreasepackage", 'package', 'readme', 'license', 'beautify1', 'scoped', 'concat-scoped', 'uglify-noscoped', "uglify-scoped", 'lint']);
 	grunt.registerTask('check', [ 'lint', 'qunitjs' ]);
 
 };
