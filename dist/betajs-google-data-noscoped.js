@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.3 - 2018-08-18
+betajs-google-data - v0.0.4 - 2018-08-20
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,7 +12,7 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.3"
+    "version": "0.0.4"
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -68,27 +68,11 @@ Scoped.define("module:Helpers.Google", [
             return promise;
         },
 
-        scopes: [
-            "profile",
-            "email",
-            "https://www.googleapis.com/auth/contacts.readonly",
-            "https://www.googleapis.com/auth/calendar",
-            /*
-            "https://www.googleapis.com/auth/gmail.readonly",
-            "https://www.googleapis.com/auth/gmail.compose"
-            */
-
-            "https://mail.google.com",
-            "https://www.googleapis.com/auth/contacts",
-            "https://www.googleapis.com/auth/pubsub",
-            "https://www.google.com/m8/feeds"
-        ],
-
-        oauth2Url: function(oauth2) {
+        oauth2Url: function(oauth2, scopes) {
             return oauth2.generateAuthUrl({
                 access_type: 'offline',
                 prompt: "consent",
-                scope: this.scopes
+                scope: scopes
             });
         },
 

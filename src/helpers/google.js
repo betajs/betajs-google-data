@@ -49,27 +49,11 @@ Scoped.define("module:Helpers.Google", [
             return promise;
         },
 
-        scopes: [
-            "profile",
-            "email",
-            "https://www.googleapis.com/auth/contacts.readonly",
-            "https://www.googleapis.com/auth/calendar",
-            /*
-            "https://www.googleapis.com/auth/gmail.readonly",
-            "https://www.googleapis.com/auth/gmail.compose"
-            */
-
-            "https://mail.google.com",
-            "https://www.googleapis.com/auth/contacts",
-            "https://www.googleapis.com/auth/pubsub",
-            "https://www.google.com/m8/feeds"
-        ],
-
-        oauth2Url: function(oauth2) {
+        oauth2Url: function(oauth2, scopes) {
             return oauth2.generateAuthUrl({
                 access_type: 'offline',
                 prompt: "consent",
-                scope: this.scopes
+                scope: scopes
             });
         },
 
