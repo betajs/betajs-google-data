@@ -11,8 +11,8 @@ google.setCredentials(C.userCredentials);
 
 var store = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
 
-store.addAttachments(process.argv[2], /*process.argv[3]*/[
-    {name: "hund2.jpg", data: require('fs').readFileSync('/Users/oliverfriedmann/Downloads/hund.jpg')}
+store.addAttachments(process.argv[2], [
+    {name: require("path").basename(process.argv[3]), data: require('fs').readFileSync(process.argv[3])}
 ]).success(function (iter) {
 	console.log(iter);
 }).error(function (e) {
