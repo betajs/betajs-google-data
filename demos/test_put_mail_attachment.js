@@ -1,6 +1,7 @@
 Scoped = require("../node_modules/betajs-scoped/dist/scoped.js");
 BetaJS = require("../node_modules/betajs/dist/beta-noscoped.js");
 require("../node_modules/betajs-data/dist/betajs-data-noscoped.js");
+
 require("../dist/betajs-google-data.js");
 var C = require("../local-credentials.js");
 
@@ -9,14 +10,11 @@ var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCred
 google.setCredentials(C.userCredentials);
 
 var store = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
-//var store = new BetaJS.Data.Google.Stores.GoogleCalendarStore(google, C.userEmail);
 
-store.query({
-	sent: true,
-	archived: false
-}, {limit: 100}).success(function (iter) {
-	console.log(iter.asArray());
+store.addAttachments(process.argv[2], /*process.argv[3]*/[
+    {name: "hund2.jpg", data: require('fs').readFileSync('/Users/oliverfriedmann/Downloads/hund.jpg')}
+]).success(function (iter) {
+	console.log(iter);
 }).error(function (e) {
 	console.log(e);
 });
-

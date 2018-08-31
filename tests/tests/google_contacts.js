@@ -5,7 +5,7 @@ QUnit.test("index google contacts", function (assert) {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-    var store = new BetaJS.DataSupport.Stores.GoogleContactsStore(google);
+    var store = new BetaJS.Data.Google.Stores.GoogleContactsStore(google);
 
     store.query({}, {limit: 10}).success(function (iter) {
 		var items = iter.asArray();

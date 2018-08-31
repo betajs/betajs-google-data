@@ -5,8 +5,8 @@ require("../dist/betajs-google-data.js");
 
 var C = require("../local-credentials.js");
 
-var google = BetaJS.DataSupport.Helpers.Google.oauth2(C.apiCredentials.client_id, C.apiCredentials.client_secret, "http://localhost:5000/callbacks/google/oauth");
-console.log(BetaJS.DataSupport.Helpers.Google.oauth2Url(google, [
+var google = BetaJS.Data.Google.Helpers.Google.oauth2(C.apiCredentials.client_id, C.apiCredentials.client_secret, "http://localhost:5000/callbacks/google/oauth");
+console.log(BetaJS.Data.Google.Helpers.Google.oauth2Url(google, [
     "profile",
     "email",
     "https://www.googleapis.com/auth/contacts.readonly",

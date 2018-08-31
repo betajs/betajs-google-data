@@ -5,7 +5,7 @@ QUnit.test("index google calendar", function (assert) {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-	var calendarStore = new BetaJS.DataSupport.Stores.GoogleCalendarStore(google, C.userEmail);
+	var calendarStore = new BetaJS.Data.Google.Stores.GoogleCalendarStore(google, C.userEmail);
 
 	calendarStore.query({}, {limit: 10}).success(function (iter) {
 		var items = iter.asArray();
@@ -21,7 +21,7 @@ test("google calendar get", function () {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-	var calendarStore = new BetaJS.DataSupport.Stores.GoogleCalendarStore(google, C.userEmail);
+	var calendarStore = new BetaJS.Data.Google.Stores.GoogleCalendarStore(google, C.userEmail);
 
 	calendarStore.query({}, {limit: 1}).success(function (iter) {
 		var item = iter.next();

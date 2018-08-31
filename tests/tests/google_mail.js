@@ -3,7 +3,7 @@ QUnit.test("index google mail", function (assert) {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-	var mailStore = new BetaJS.DataSupport.Stores.GoogleMailStore(google);
+	var mailStore = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
 	var done = assert.async();
 	mailStore.query({}, {limit: 10}).success(function (iter) {
 		var items = iter.asArray();
@@ -17,7 +17,7 @@ QUnit.test("google mail get", function (assert) {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-	var mailStore = new BetaJS.DataSupport.Stores.GoogleMailStore(google);
+	var mailStore = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
 
     var done = assert.async();
     mailStore.query({}, {limit: 1}).success(function (iter) {
@@ -35,7 +35,7 @@ QUnit.test("google mail send", function (assert) {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-	var mailStore = new BetaJS.DataSupport.Stores.GoogleMailStore(google);
+	var mailStore = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
     var done = assert.async();
 	mailStore.insert({
 		to: C.userEmail,
@@ -52,7 +52,7 @@ QUnit.test("google draft send", function (assert) {
 	var Google = require("googleapis");
 	var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 	google.setCredentials(C.userCredentials);
-	var mailStore = new BetaJS.DataSupport.Stores.GoogleMailStore(google);
+	var mailStore = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
     var done = assert.async();
 	mailStore.insert({
 		to: C.userEmail,

@@ -8,6 +8,7 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
     "base:Time",
     "base:Types"
 ], function(BaseStore, Queries, Promise, Objs, Time, Types, scoped) {
+
     return BaseStore.extend({
         scoped: scoped
     }, function(inherited) {
@@ -239,16 +240,69 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                             var buf = new Buffer(draftData.payload.body.data, "base64");
                             data.text_body = buf.toString();
                         }
-                        return this.__rawMessageByData(Objs.extend(draftData, data)).mapSuccess(function(raw) {
-                            return this.__gmailExecute("update", "drafts", {
-                                id: id,
-                                resource: {
-                                    message: {
-                                        raw: raw
+                        if (data.attachments) {
+                            data.addAttachments = data.attachments;
+                            data.attachments = [];
+                        } else {
+                            data.attachments = [];
+                            var processParts = function(parts) {
+                                Objs.iter(parts, function(part) {
+                                    try {
+                                        switch (part.mimeType) {
+                                            case "text/plain":
+                                                if (!("text_body" in data))
+                                                    data.text_body = new Buffer(part.body.data, 'base64').toString();
+                                                break;
+                                            case "text/html":
+                                                break;
+                                            case "multipart/alternative":
+                                                processParts(part.parts);
+                                                break;
+                                            default:
+                                                if (part.body && part.body.attachmentId) {
+                                                    data.attachments.push({
+                                                        type: part.mimeType,
+                                                        name: part.filename,
+                                                        id: part.body.attachmentId
+                                                    });
+                                                }
+                                                break;
+                                        }
+                                    } catch (e) {}
+                                });
+                            };
+                            processParts(draftData.payload.parts || [draftData.payload]);
+                        }
+                        return Promise.and(data.attachments.map(function(attachment) {
+                            return this.getAttachment(id, attachment.id).mapSuccess(function(attachmentData) {
+                                return {
+                                    contentType: attachment.type,
+                                    filename: attachment.name,
+                                    content: new Buffer(attachmentData.data.data, "base64")
+                                };
+                            });
+                        }, this)).end().mapSuccess(function(attachments) {
+                            data.attachments = attachments;
+                            if (data.attachmentsAdd) {
+                                data.attachments = data.attachments.concat(data.attachmentsAdd.map(function(attachment) {
+                                    return {
+                                        filename: attachment.name,
+                                        content: attachment.data
+                                    };
+                                }));
+                                delete data.attachmentsAdd;
+                            }
+                            return this.__rawMessageByData(Objs.extend(draftData, data)).mapSuccess(function(raw) {
+                                return this.__gmailExecute("update", "drafts", {
+                                    id: id,
+                                    resource: {
+                                        message: {
+                                            raw: raw
+                                        }
                                     }
-                                }
-                            }).mapSuccess(function(result) {
-                                return this.get(result.data.id);
+                                }).mapSuccess(function(result) {
+                                    return this.get(result.data.id);
+                                }, this);
                             }, this);
                         }, this);
                     }, this)
@@ -287,8 +341,9 @@ Scoped.define("module:Stores.GoogleMailStore", [
     "data:Stores.TransformationStore",
     "data:Queries",
     "module:Stores.GoogleRawMailStore",
-    "base:Objs"
-], function(TransformationStore, Queries, GoogleRawMailStore, Objs, scoped) {
+    "base:Objs",
+    "base:Promise"
+], function(TransformationStore, Queries, GoogleRawMailStore, Objs, Promise, scoped) {
     return TransformationStore.extend({
         scoped: scoped
     }, function(inherited) {
@@ -308,6 +363,12 @@ Scoped.define("module:Stores.GoogleMailStore", [
 
             getAttachment: function(messageId, attachmentId) {
                 return this._store().getAttachment(messageId, attachmentId);
+            },
+
+            addAttachments: function(messageId, attachments) {
+                return this.update(messageId, {
+                    attachmentsAdd: attachments
+                });
             },
 
             _encodeData: function(data) {

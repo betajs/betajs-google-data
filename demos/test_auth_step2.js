@@ -5,10 +5,10 @@ require("../dist/betajs-google-data.js");
 
 var C = require("../local-credentials.js");
 
-var google = BetaJS.DataSupport.Helpers.Google.oauth2(C.apiCredentials.client_id, C.apiCredentials.client_secret, "http://localhost:5000/callbacks/google/oauth");
+var google = BetaJS.Data.Google.Helpers.Google.oauth2(C.apiCredentials.client_id, C.apiCredentials.client_secret, "http://localhost:5000/callbacks/google/oauth");
 
 var code = process.argv[2];
 
-BetaJS.DataSupport.Helpers.Google.oauth2GetToken(google, code).callback(function (error, token) {
+BetaJS.Data.Google.Helpers.Google.oauth2GetToken(google, code).callback(function (error, token) {
     console.log(error, token);
 });
