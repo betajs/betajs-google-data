@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.5 - 2018-08-31
+betajs-google-data - v0.0.6 - 2018-08-31
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,7 +12,7 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.5"
+    "version": "0.0.6"
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -1017,6 +1017,8 @@ Scoped.define("module:Stores.GoogleMailStore", [
             addAttachments: function(messageId, attachments) {
                 return this.update(messageId, {
                     attachmentsAdd: attachments
+                }).mapSuccess(function(result) {
+                    return result.attachments.slice(-attachments.length);
                 });
             },
 

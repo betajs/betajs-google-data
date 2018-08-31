@@ -368,6 +368,8 @@ Scoped.define("module:Stores.GoogleMailStore", [
             addAttachments: function(messageId, attachments) {
                 return this.update(messageId, {
                     attachmentsAdd: attachments
+                }).mapSuccess(function(result) {
+                    return result.attachments.slice(-attachments.length);
                 });
             },
 
