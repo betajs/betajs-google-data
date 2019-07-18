@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.6 - 2018-08-31
+betajs-google-data - v0.0.7 - 2019-07-17
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,7 +12,7 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.6"
+    "version": "0.0.7"
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -722,16 +722,19 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
 
             __rawMessageByData: function(data) {
                 var mailcomposer = require("mailcomposer");
-                var mail = mailcomposer(Objs.filter({
+                var objs = Objs.filter({
                     to: data.to,
                     cc: data.cc,
                     bcc: data.bcc,
+                    "in-reply-to": data["In-Reply-To"],
+                    references: data.References,
                     subject: data.subject,
                     text: data.text_body,
                     attachments: data.attachments
                 }, function(value) {
                     return !!value;
-                }));
+                });
+                var mail = mailcomposer(objs);
                 var promise = Promise.create();
                 mail.build(function(err, value) {
                     promise.asyncSuccess(value.toString('base64').replace(/\+/g, '-').replace(/\//g, '_'));
@@ -745,9 +748,11 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                     return this.__gmailExecute(draft ? "create" : "send", draft ? "drafts" : "messages", {
                         resource: draft ? {
                             message: {
+                                threadId: data.threadId,
                                 raw: raw
                             }
                         } : {
+                            threadId: data.threadId,
                             raw: raw
                         }
                     }).mapSuccess(function(result) {
@@ -759,7 +764,7 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
             _query: function(query, options) {
                 if (query.id) {
                     return this.get(query.id).mapSuccess(function(json) {
-                        return [json.data];
+                        return [json.data || json];
                     });
                 }
                 var promise = null;
@@ -1029,14 +1034,27 @@ Scoped.define("module:Stores.GoogleMailStore", [
                 Objs.iter(data, function(value, key) {
                     if (value === null || value === undefined)
                         return;
-                    if (key == "time")
-                        result.Date = value;
-                    else if (key == "threadid")
-                        result.threadId = value;
-                    else if (key == "to" || key == "cc" || key == "bcc")
-                        result[key] = value.join ? value.join(",") : value;
-                    else
-                        result[key] = value;
+                    switch (key) {
+                        case "time":
+                            result.Date = value;
+                            break;
+                        case "threadid":
+                            result.threadId = value;
+                            break;
+                        case "in_reply_to":
+                            result["In-Reply-To"] = value;
+                            break;
+                        case "to":
+                        case "cc":
+                        case "bcc":
+                            result[key] = value.join ? value.join(",") : value;
+                            break;
+                        case "references":
+                            result.References = value;
+                            break;
+                        default:
+                            result[key] = value;
+                    }
                 }, this);
                 if (result.labelIds.length === 0)
                     delete result.labelIds;
@@ -1065,16 +1083,26 @@ Scoped.define("module:Stores.GoogleMailStore", [
                         result.category = key.substring("CATEGORY_".length).toLowerCase();
                 });
                 Objs.iter(json.payload.headers, function(item) {
-                    if (item.name == 'To')
-                        result.to.push(item.value);
-                    if (item.name == 'Cc')
-                        result.cc.push(item.value);
-                    if (item.name == 'From')
-                        result.from = item.value;
-                    if (item.name == 'Subject')
-                        result.subject = item.value;
-                    if (item.name == 'Date')
-                        result.creation_time = Date.parse(item.value);
+                    switch (item.name) {
+                        case "To":
+                            result.to.push(item.value);
+                            break;
+                        case "Cc":
+                            result.cc.push(item.value);
+                            break;
+                        case "From":
+                            result.from = item.value;
+                            break;
+                        case "Subject":
+                            result.subject = item.value;
+                            break;
+                        case "Date":
+                            result.creation_time = Date.parse(item.value);
+                            break;
+                        case "Message-Id":
+                            result.messageid = item.value;
+                            break;
+                    }
                 });
                 var processParts = function(parts) {
                     Objs.iter(parts, function(part) {
