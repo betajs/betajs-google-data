@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.7 - 2019-07-17
+betajs-google-data - v0.0.8 - 2020-01-18
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,7 +12,7 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.7"
+    "version": "0.0.8"
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -744,6 +744,8 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
 
             _insert: function(data) {
                 var draft = data.draft;
+                if (data.threadId.indexOf("-") >= 0)
+                    delete data.threadId;
                 return this.__rawMessageByData(data).mapSuccess(function(raw) {
                     return this.__gmailExecute(draft ? "create" : "send", draft ? "drafts" : "messages", {
                         resource: draft ? {

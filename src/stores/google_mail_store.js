@@ -95,6 +95,8 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
 
             _insert: function(data) {
                 var draft = data.draft;
+                if (data.threadId.indexOf("-") >= 0)
+                    delete data.threadId;
                 return this.__rawMessageByData(data).mapSuccess(function(raw) {
                     return this.__gmailExecute(draft ? "create" : "send", draft ? "drafts" : "messages", {
                         resource: draft ? {
