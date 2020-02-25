@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.8 - 2020-01-18
+betajs-google-data - v0.0.9 - 2020-02-25
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -1006,7 +1006,7 @@ Public.exports();
 	return Public;
 }).call(this);
 /*!
-betajs-google-data - v0.0.8 - 2020-01-18
+betajs-google-data - v0.0.9 - 2020-02-25
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -1019,7 +1019,7 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.8"
+    "version": "0.0.9"
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -1708,8 +1708,12 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                 }, this, resilience || 5);
             },
 
+            __isDraft: function(id) {
+                return id.indexOf("r") === 0;
+            },
+
             _get: function(id) {
-                var draft = id.indexOf("r") === 0;
+                var draft = this.__isDraft(id);
                 return this.__gmailExecute("get", draft ? "drafts" : "messages", {
                     id: id,
                     format: "full"
@@ -1894,7 +1898,8 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                         }, this);
                     }, this);
                 }
-                return this._get(id).mapSuccess(function(draftData) {
+                if (this.__isDraft(id)) {
+                    return this._get(id).mapSuccess(function(draftData) {
                         Objs.iter(draftData.payload.headers, function(item) {
                             if (!(item.name.toLowerCase() in data))
                                 data[item.name.toLowerCase()] = item.value;
@@ -1968,22 +1973,25 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                 }, this);
                             }, this);
                         }, this);
-                    }, this)
-                    .mapError(function(e) {
-                        var addLabelIds = [];
-                        var removeLabelIds = [];
-                        if ("in_inbox" in data)
-                            (data.in_inbox ? addLabelIds : removeLabelIds).push("INBOX");
-                        if ("archived" in data)
-                            (!data.archived ? addLabelIds : removeLabelIds).push("INBOX");
-                        if ("read" in data)
-                            (!data.read ? addLabelIds : removeLabelIds).push("UNREAD");
-                        if ("sent" in data)
-                            (data.sent ? addLabelIds : removeLabelIds).push("SENT");
-                        if ("draft" in data)
-                            (data.draft ? addLabelIds : removeLabelIds).push("DRAFT");
-                        if ("starred" in data)
-                            (data.starred ? addLabelIds : removeLabelIds).push("STARRED");
+                    }, this);
+                } else {
+                    var addLabelIds = [];
+                    var removeLabelIds = [];
+                    if ("in_inbox" in data)
+                        (data.in_inbox ? addLabelIds : removeLabelIds).push("INBOX");
+                    if ("archived" in data)
+                        (!data.archived ? addLabelIds : removeLabelIds).push("INBOX");
+                    if ("read" in data)
+                        (!data.read ? addLabelIds : removeLabelIds).push("UNREAD");
+                    /*
+                    if ("sent" in data)
+                        (data.sent ? addLabelIds : removeLabelIds).push("SENT");
+                    if ("draft" in data)
+                        (data.draft ? addLabelIds : removeLabelIds).push("DRAFT");
+                     */
+                    if ("starred" in data)
+                        (data.starred ? addLabelIds : removeLabelIds).push("STARRED");
+                    if (addLabelIds.length + removeLabelIds.length > 0) {
                         return this.__gmailExecute("modify", "messages", {
                             id: id,
                             resource: {
@@ -1991,8 +1999,9 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                 removeLabelIds: removeLabelIds
                             }
                         });
-                    }, this);
-                //return Promise.value(data);
+                    } else
+                        return Promise.value({});
+                }
             }
 
         };
