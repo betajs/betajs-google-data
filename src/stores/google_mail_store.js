@@ -99,7 +99,7 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
 
             _insert: function(data) {
                 var draft = data.draft;
-                if (data.threadId.indexOf("-") >= 0)
+                if (data.threadId && data.threadId.indexOf("-") >= 0)
                     delete data.threadId;
                 return this.__rawMessageByData(data).mapSuccess(function(raw) {
                     return this.__gmailExecute(draft ? "create" : "send", draft ? "drafts" : "messages", {
@@ -222,6 +222,8 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
             },
 
             _update: function(id, data) {
+                if (data.threadId && data.threadId.indexOf("-") >= 0)
+                    delete data.threadId;
                 if ("draft" in data && !data.draft) {
                     if (Objs.count(data) > 1) {
                         delete data.draft;
