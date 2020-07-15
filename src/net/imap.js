@@ -14,7 +14,7 @@ Scoped.define("module:Net.Imap", [
             constructor: function(auth, options) {
                 inherited.constructor.call(this);
                 this.__quoted_printable = require("quoted-printable");
-                this.__html_strip = require('htmlstrip-native');
+                this.__html_strip = require('string-strip-html');
                 this.__auth = auth;
                 options = options || {};
                 this.__options = options;
@@ -246,11 +246,13 @@ Scoped.define("module:Net.Imap", [
                             text_body = encoded;
                     }
                     if (!text_body && html_body) {
-                        text_body = this.__html_strip.html_strip(html_body, {
-                            include_script: false,
-                            include_style: false,
-                            compact_whitespace: true
-                        });
+                        text_body = this.__html_strip(html_body
+                            /*, {
+                                                        include_script: false,
+                                                        include_style: false,
+                                                        compact_whitespace: true
+                                                    }*/
+                        );
                     }
                     mail.html_body = html_body;
                     mail.text_body = text_body;

@@ -15,7 +15,7 @@
         "url": "https://github.com/betajs/betajs-google-data/issues"
     },
     "name": "betajs-google-data",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "description": "BetaJS-Google-Data",
     "contributors": [
         "Oliver Friedmann"
@@ -25,7 +25,7 @@
         "grunt": "",
         "grunt-contrib-jshint": "",
         "grunt-contrib-concat": "",
-        "grunt-contrib-uglify": "~2.3.0",
+        "grunt-contrib-uglify": "",
         "grunt-contrib-clean": "",
         "grunt-preprocess": "",
         "grunt-closure-tools": "",
@@ -33,7 +33,7 @@
         "grunt-jsdoc": "",
         "grunt-shell": "",
         "grunt-template": "",
-        "htmlstrip-native": "",
+        "string-strip-html": "",
         "mailcomposer": "",
         "betajs-scoped": "~0.0.13",
         "betajs-compile": "~0.0.28",
@@ -43,7 +43,8 @@
         "google-contacts": ""
     },
     "scripts": {
-        "relink": "npm link betajs && npm link betajs-compile && npm link betajs-scoped && npm link betajs && npm link betajs-data"
+        "relink": "npm link betajs && npm link betajs-compile && npm link betajs-scoped && npm link betajs && npm link betajs-data",
+        "reinstall": "rm -f package-lock.json && rm -rf node_modules && npm i && npm run relink"
     },
     "main": "dist/betajs-google-data.js",
     "repository": {
@@ -69,7 +70,7 @@
         }
     },
     "dependencies": {
-        "@google-cloud/pubsub": "^0.19.0",
+        "@google-cloud/pubsub": "",
         "googleapis": ""
     }
 }

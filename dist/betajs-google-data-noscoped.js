@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.10 - 2020-02-26
+betajs-google-data - v0.0.11 - 2020-07-15
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,7 +12,8 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.10"
+    "version": "0.0.11",
+    "datetime": 1594837995064
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -128,7 +129,7 @@ Scoped.define("module:Net.Imap", [
             constructor: function(auth, options) {
                 inherited.constructor.call(this);
                 this.__quoted_printable = require("quoted-printable");
-                this.__html_strip = require('htmlstrip-native');
+                this.__html_strip = require('string-strip-html');
                 this.__auth = auth;
                 options = options || {};
                 this.__options = options;
@@ -360,11 +361,13 @@ Scoped.define("module:Net.Imap", [
                             text_body = encoded;
                     }
                     if (!text_body && html_body) {
-                        text_body = this.__html_strip.html_strip(html_body, {
-                            include_script: false,
-                            include_style: false,
-                            compact_whitespace: true
-                        });
+                        text_body = this.__html_strip(html_body
+                            /*, {
+                                                        include_script: false,
+                                                        include_style: false,
+                                                        compact_whitespace: true
+                                                    }*/
+                        );
                     }
                     mail.html_body = html_body;
                     mail.text_body = text_body;
