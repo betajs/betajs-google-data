@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.11 - 2020-07-15
+betajs-google-data - v0.0.12 - 2021-01-04
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,8 +12,8 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.11",
-    "datetime": 1594837995064
+    "version": "0.0.12",
+    "datetime": 1609794783167
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -661,6 +661,41 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
     "base:Types"
 ], function(BaseStore, Queries, Promise, Objs, Time, Types, scoped) {
 
+    var RAW_MESSAGE_BY_DATA_MAPPING = {
+        to: "to",
+        cc: "cc",
+        bcc: "bcc",
+        "in-reply-to": "In-Reply-To",
+        references: "References",
+        subject: "subject",
+        text: "text_body",
+        attachments: "attachments"
+    };
+
+    var ATTRS_TO_LABELS = {
+        sent: "SENT",
+        draft: "DRAFT",
+        starred: "STARRED",
+        spam: "SPAM",
+        trash: "TRASH",
+        important: "IMPORTANT",
+        cat_personal: "CATEGORY_PERSONAL",
+        cat_social: "CATEGORY_SOCIAL",
+        cat_promotions: "CATEGORY_PROMOTIONS",
+        cat_updates: "CATEGORY_UPDATES",
+        cat_forums: "CATEGORY_FORUMS"
+    };
+
+    var NEG_ATTRS_TO_LABELS = {
+        archived: "INBOX",
+        read: "UNREAD"
+    };
+
+    var UNUPDATABLE_ATTRS = {
+        sent: true,
+        draft: true
+    };
+
     return BaseStore.extend({
         scoped: scoped
     }, function(inherited) {
@@ -729,17 +764,10 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
 
             __rawMessageByData: function(data) {
                 var mailcomposer = require("mailcomposer");
-                var objs = Objs.filter({
-                    to: data.to,
-                    cc: data.cc,
-                    bcc: data.bcc,
-                    "in-reply-to": data["In-Reply-To"],
-                    references: data.References,
-                    subject: data.subject,
-                    text: data.text_body,
-                    attachments: data.attachments
-                }, function(value) {
-                    return !!value;
+                var objs = {};
+                Objs.iter(RAW_MESSAGE_BY_DATA_MAPPING, function(dataKey, objsKey) {
+                    if (dataKey in data)
+                        objs[objsKey] = data[dataKey];
                 });
                 var mail = mailcomposer(objs);
                 var promise = Promise.create();
@@ -792,20 +820,18 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                 if (cond === "$sw" || cond === "$swic")
                                     q.push(key + ":" + condval + "*");
                             });
-                        } else if (key !== "sent" && key !== "in_inbox" && key !== "draft" && key !== "starred" && key !== "archived")
+                        } else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
                             q.push(key + ":" + value);
                     });
                     var labelids = [];
-                    if (query.in_inbox)
-                        labelids.push("INBOX");
-                    if ("archived" in query && !query.archived)
-                        labelids.push("INBOX");
-                    if (query.sent)
-                        labelids.push("SENT");
-                    if (query.draft)
-                        labelids.push("DRAFT");
-                    if (query.starred)
-                        labelids.push("STARRED");
+                    Objs.iter(ATTRS_TO_LABELS, function(label, attr) {
+                        if (attr in query && query[attr])
+                            labelids.push(label);
+                    });
+                    Objs.iter(NEG_ATTRS_TO_LABELS, function(label, attr) {
+                        if (attr in query && !query[attr])
+                            labelids.push(label);
+                    });
                     var google_query = {
                         maxResults: options.limit || 100
                     };
@@ -975,20 +1001,14 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                 } else {
                     var addLabelIds = [];
                     var removeLabelIds = [];
-                    if ("in_inbox" in data)
-                        (data.in_inbox ? addLabelIds : removeLabelIds).push("INBOX");
-                    if ("archived" in data)
-                        (!data.archived ? addLabelIds : removeLabelIds).push("INBOX");
-                    if ("read" in data)
-                        (!data.read ? addLabelIds : removeLabelIds).push("UNREAD");
-                    /*
-                    if ("sent" in data)
-                        (data.sent ? addLabelIds : removeLabelIds).push("SENT");
-                    if ("draft" in data)
-                        (data.draft ? addLabelIds : removeLabelIds).push("DRAFT");
-                     */
-                    if ("starred" in data)
-                        (data.starred ? addLabelIds : removeLabelIds).push("STARRED");
+                    Objs.iter(ATTRS_TO_LABELS, function(label, attr) {
+                        if (attr in data && !(attr in UNUPDATABLE_ATTRS))
+                            (data[attr] ? addLabelIds : removeLabelIds).push(label);
+                    });
+                    Objs.iter(NEG_ATTRS_TO_LABELS, function(label, attr) {
+                        if (attr in data && !(attr in UNUPDATABLE_ATTRS))
+                            (data[attr] ? removeLabelIds : addLabelIds).push(label);
+                    });
                     if (addLabelIds.length + removeLabelIds.length > 0) {
                         return this.__gmailExecute("modify", "messages", {
                             id: id,
@@ -1014,6 +1034,26 @@ Scoped.define("module:Stores.GoogleMailStore", [
     "base:Objs",
     "base:Promise"
 ], function(TransformationStore, Queries, GoogleRawMailStore, Objs, Promise, scoped) {
+
+    var ATTRS_TO_LABELS = {
+        sent: "SENT",
+        draft: "DRAFT",
+        starred: "STARRED",
+        spam: "SPAM",
+        trash: "TRASH",
+        important: "IMPORTANT",
+        cat_personal: "CATEGORY_PERSONAL",
+        cat_social: "CATEGORY_SOCIAL",
+        cat_promotions: "CATEGORY_PROMOTIONS",
+        cat_updates: "CATEGORY_UPDATES",
+        cat_forums: "CATEGORY_FORUMS"
+    };
+
+    var NEG_ATTRS_TO_LABELS = {
+        archived: "INBOX",
+        read: "UNREAD"
+    };
+
     return TransformationStore.extend({
         scoped: scoped
     }, function(inherited) {
@@ -1084,19 +1124,15 @@ Scoped.define("module:Stores.GoogleMailStore", [
                     id: json.id,
                     threadid: json.threadId,
                     snippet: json.snippet,
-                    archived: !Objs.contains_value(json.labelIds, "INBOX"),
                     attachments: [],
                     to: [],
-                    cc: [],
-                    in_inbox: Objs.contains_value(json.labelIds, "INBOX"),
-                    read: !Objs.contains_value(json.labelIds, "UNREAD"),
-                    sent: Objs.contains_value(json.labelIds, "SENT"),
-                    draft: Objs.contains_value(json.labelIds, "DRAFT"),
-                    starred: Objs.contains_value(json.labelIds, "STARRED")
+                    cc: []
                 };
-                Objs.iter(json.labelIds, function(key) {
-                    if (key.indexOf("CATEGORY_") === 0)
-                        result.category = key.substring("CATEGORY_".length).toLowerCase();
+                Objs.iter(ATTRS_TO_LABELS, function(label, attr) {
+                    result[attr] = Objs.contains_value(json.labelIds, label);
+                });
+                Objs.iter(NEG_ATTRS_TO_LABELS, function(label, attr) {
+                    result[attr] = !Objs.contains_value(json.labelIds, label);
                 });
                 Objs.iter(json.payload.headers, function(item) {
                     switch (item.name) {
