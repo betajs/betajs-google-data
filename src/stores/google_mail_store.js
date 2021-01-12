@@ -485,10 +485,14 @@ Scoped.define("module:Stores.GoogleMailStore", [
                 Objs.iter(json.payload.headers, function(item) {
                     switch (item.name) {
                         case "To":
-                            result.to.push(item.value);
+                            result.to = result.to.concat(item.value.split(",").map(function(s) {
+                                return s.trim();
+                            }));
                             break;
                         case "Cc":
-                            result.cc.push(item.value);
+                            result.cc = result.cc.concat(item.value.split(",").map(function(s) {
+                                return s.trim();
+                            }));
                             break;
                         case "From":
                             result.from = item.value;
