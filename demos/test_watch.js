@@ -1,3 +1,9 @@
+Scoped = require("../node_modules/betajs-scoped/dist/scoped.js");
+BetaJS = require("../node_modules/betajs/dist/beta-noscoped.js");
+require("../node_modules/betajs-data/dist/betajs-data-noscoped.js");
+
+require("../dist/betajs-google-data.js");
+
 var C = require("../local-credentials.js");
 
 var Google = require("googleapis");
@@ -6,16 +12,11 @@ google.setCredentials(C.userCredentials);
 
 var Gmail = Google.google.gmail("v1");
 
+BetaJS.Data.Google.Helpers.Google.gmailWatch(google, C.pubSub).callback(function (err, res) {
+    console.log(err, res);
+});
 
-var options = {
-    userId: 'me',
-    auth: google,
-    resource: {
-        labelIds: ['INBOX'],
-        topicName: 'projects/' + C.pubSub.project_id + '/topics/' + C.pubSub.topic_name
-    }
-};
 
-Gmail.users.watch(options, function (err, res) {
+BetaJS.Data.Google.Helpers.Google.pubsubSubscribe(C.pubSub, function (err, res) {
     console.log(err, res);
 });

@@ -4,7 +4,7 @@ Scoped.define("module:Helpers.Google", [
 ], function(Promise, Time) {
 
     var Google = require("googleapis");
-    var PubSub = require('@google-cloud/pubsub');
+    var PubSub = require('@google-cloud/pubsub').PubSub;
 
     return {
 

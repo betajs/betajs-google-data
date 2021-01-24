@@ -168,7 +168,11 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                 if (cond === "$sw" || cond === "$swic")
                                     q.push(key + ":" + condval + "*");
                             });
-                        } else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
+                        } else if (key === 'primary' && value)
+                            q.push('in:inbox -category:{social promotions forums}');
+                        else if (key === 'primary' && !value)
+                            q.push('category:{social promotions forums}');
+                        else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
                             q.push(key + ":" + value);
                     });
                     var labelids = [];
@@ -482,6 +486,9 @@ Scoped.define("module:Stores.GoogleMailStore", [
                 Objs.iter(NEG_ATTRS_TO_LABELS, function(label, attr) {
                     result[attr] = !Objs.contains_value(json.labelIds, label);
                 });
+                result.primary = false;
+                if (Objs.contains_value(json.labelIds, "INBOX") && !Objs.contains_value(json.labelIds, "SOCIAL") && !Objs.contains_value(json.labelIds, "PROMOTIONS") && !Objs.contains_value(json.labelIds, "FORUMS"))
+                    result.primary = true;
                 Objs.iter(json.payload.headers, function(item) {
                     switch (item.name) {
                         case "To":

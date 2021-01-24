@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.13 - 2021-01-11
+betajs-google-data - v0.0.14 - 2021-01-23
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,8 +12,8 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.13",
-    "datetime": 1610419102037
+    "version": "0.0.14",
+    "datetime": 1611462651941
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -24,7 +24,7 @@ Scoped.define("module:Helpers.Google", [
 ], function(Promise, Time) {
 
     var Google = require("googleapis");
-    var PubSub = require('@google-cloud/pubsub');
+    var PubSub = require('@google-cloud/pubsub').PubSub;
 
     return {
 
@@ -820,7 +820,11 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                 if (cond === "$sw" || cond === "$swic")
                                     q.push(key + ":" + condval + "*");
                             });
-                        } else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
+                        } else if (key === 'primary' && value)
+                            q.push('in:inbox -category:{social promotions forums}');
+                        else if (key === 'primary' && !value)
+                            q.push('category:{social promotions forums}');
+                        else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
                             q.push(key + ":" + value);
                     });
                     var labelids = [];
@@ -1134,6 +1138,9 @@ Scoped.define("module:Stores.GoogleMailStore", [
                 Objs.iter(NEG_ATTRS_TO_LABELS, function(label, attr) {
                     result[attr] = !Objs.contains_value(json.labelIds, label);
                 });
+                result.primary = false;
+                if (Objs.contains_value(json.labelIds, "INBOX") && !Objs.contains_value(json.labelIds, "SOCIAL") && !Objs.contains_value(json.labelIds, "PROMOTIONS") && !Objs.contains_value(json.labelIds, "FORUMS"))
+                    result.primary = true;
                 Objs.iter(json.payload.headers, function(item) {
                     switch (item.name) {
                         case "To":
