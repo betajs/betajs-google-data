@@ -169,9 +169,9 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                     q.push(key + ":" + condval + "*");
                             });
                         } else if (key === 'primary' && value)
-                            q.push('in:inbox -category:{social promotions forums}');
+                            q.push('category:primary');
                         else if (key === 'primary' && !value)
-                            q.push('category:{social promotions forums}');
+                            q.push('-category:primary');
                         else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
                             q.push(key + ":" + value);
                     });

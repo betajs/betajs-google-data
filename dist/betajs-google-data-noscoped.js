@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.14 - 2021-01-23
+betajs-google-data - v0.0.15 - 2021-01-24
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,8 +12,8 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.14",
-    "datetime": 1611462651941
+    "version": "0.0.15",
+    "datetime": 1611511350641
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -821,9 +821,9 @@ Scoped.define("module:Stores.GoogleRawMailStore", [
                                     q.push(key + ":" + condval + "*");
                             });
                         } else if (key === 'primary' && value)
-                            q.push('in:inbox -category:{social promotions forums}');
+                            q.push('category:primary');
                         else if (key === 'primary' && !value)
-                            q.push('category:{social promotions forums}');
+                            q.push('-category:primary');
                         else if (!(key in ATTRS_TO_LABELS) && !(key in NEG_ATTRS_TO_LABELS))
                             q.push(key + ":" + value);
                     });
