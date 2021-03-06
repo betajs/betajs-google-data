@@ -11,8 +11,8 @@ google.setCredentials(C.userCredentials);
 
 var store = new BetaJS.Data.Google.Stores.GooglePeopleStore(google);
 
-store.query({}).success(function (iter) {
-    console.log(iter.asArray());
+store.get(process.argv[2]).success(function (result) {
+    console.log(result);
 }).error(function (error) {
     console.log(error);
 });

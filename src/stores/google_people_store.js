@@ -36,15 +36,22 @@ Scoped.define("module:Stores.GooglePeopleStore", [
         "urls"
     ];
 
+    var QUERY_MAP = {
+        CONTACT_GROUPS_ALL: "__queryViaContactGroupsAll",
+        OTHER_CONTACTS: "__queryViaOtherContacts"
+    };
+
     return BaseStore.extend({
         scoped: scoped
     }, function(inherited) {
+
         return {
 
-            constructor: function(google) {
+            constructor: function(google, queryType) {
                 inherited.constructor.call(this);
                 this.__people = require("googleapis").google.people("v1");
                 this.__google = google;
+                this.__queryFunc = this[QUERY_MAP[queryType || "CONTACT_GROUPS_ALL"]];
             },
 
             _query_capabilities: function() {
@@ -56,31 +63,63 @@ Scoped.define("module:Stores.GooglePeopleStore", [
                 };
             },
 
+            __execute: function(endpoint, method, data, resilience) {
+                return Promise.resilience(function() {
+                    var promise = Promise.create();
+                    endpoint[method](Objs.extend({
+                        auth: this.__google
+                    }, data), promise.asyncCallbackFunc());
+                    return promise;
+                }, this, resilience || 5);
+            },
+
+
+            ___contactGroupsGet: function(resourceName, maxMembers) {
+                return this.__execute(this.__people.contactGroups, "get", {
+                    resourceName: resourceName,
+                    maxMembers: maxMembers
+                });
+            },
+
+            ___peopleGetBatchGet: function(resourceNames) {
+                return this.__execute(this.__people.people, "getBatchGet", {
+                    resourceNames: resourceNames || [],
+                    personFields: FIELDS
+                }).mapSuccess(function(data) {
+                    return data.data.responses.filter(function(response) {
+                        return response.httpStatusCode === 200;
+                    });
+                }, this);
+            },
+
+            ___otherContactsGet: function(maxMembers) {
+                return this.__execute(this.__people.otherContacts, "list", {
+                    pageSize: maxMembers,
+                    readMask: ["emailAddresses", "names", "phoneNumbers"]
+                });
+            },
+
+            __queryViaContactGroupsAll: function(query, options) {
+                return this.___contactGroupsGet("contactGroups/all", options.limit || 50).mapSuccess(function(data) {
+                    return this.___peopleGetBatchGet(data.data.memberResourceNames).mapSuccess(function(data) {
+                        return data.map(this._decodePerson, this);
+                    }, this);
+                }, this);
+            },
+
+            __queryViaOtherContacts: function(query, options) {
+                return this.___otherContactsGet(options.limit || 50).mapSuccess(function(data) {
+                    return data.data.otherContacts.map(this._decodePerson, this);
+                }, this);
+            },
+
             _query: function(query, options) {
                 if (query.id) {
                     return this.get(query.id).mapSuccess(function(json) {
                         return [json];
                     });
                 }
-                var promise = Promise.create();
-                this.__people.contactGroups.get(Objs.extend({
-                    auth: this.__google,
-                    resourceName: "contactGroups/all",
-                    maxMembers: options.limit || 100
-                }, query), promise.asyncCallbackFunc());
-                return promise.mapSuccess(function(data) {
-                    var promise = Promise.create();
-                    this.__people.people.getBatchGet({
-                        auth: this.__google,
-                        resourceNames: data.data.memberResourceNames || [],
-                        personFields: FIELDS
-                    }, promise.asyncCallbackFunc());
-                    return promise.mapSuccess(function(data) {
-                        return data.data.responses.filter(function(response) {
-                            return response.httpStatusCode === 200;
-                        }).map(this._decodePerson, this);
-                    }, this);
-                }, this);
+                return this.__queryFunc.call(this, query, options);
             },
 
             _get: function(id) {
@@ -94,15 +133,15 @@ Scoped.define("module:Stores.GooglePeopleStore", [
             },
 
             _encodePersonId: function(id) {
-                return "people/" + Strings.strip_start(id, "people/");
+                return "people/" + id.split("/").pop();
             },
 
             _decodePersonId: function(id) {
-                return Strings.strip_start(id, "people/");
+                return id.split("/").pop();
             },
 
             _decodePerson: function(data) {
-                var person = data.person || data;
+                var person = data.person || data.data || data;
                 var result = {
                     id: this._decodePersonId(person.resourceName),
                     emailAddresses: (person.emailAddresses || []).map(function(emailAddress) {
