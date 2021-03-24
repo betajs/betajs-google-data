@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.16 - 2021-03-06
+betajs-google-data - v0.0.17 - 2021-03-23
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -1010,7 +1010,7 @@ Public.exports();
 	return Public;
 }).call(this);
 /*!
-betajs-google-data - v0.0.16 - 2021-03-06
+betajs-google-data - v0.0.17 - 2021-03-23
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -1023,8 +1023,8 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.16",
-    "datetime": 1615065143156
+    "version": "0.0.17",
+    "datetime": 1616555477053
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -2218,8 +2218,9 @@ Scoped.define("module:Stores.GooglePeopleStore", [
     "data:Queries",
     "base:Promise",
     "base:Objs",
+    "base:Types",
     "base:Strings"
-], function(BaseStore, Queries, Promise, Objs, Strings, scoped) {
+], function(BaseStore, Queries, Promise, Objs, Types, Strings, scoped) {
 
     var FIELDS = [
         "addresses",
@@ -2253,7 +2254,8 @@ Scoped.define("module:Stores.GooglePeopleStore", [
 
     var QUERY_MAP = {
         CONTACT_GROUPS_ALL: "__queryViaContactGroupsAll",
-        OTHER_CONTACTS: "__queryViaOtherContacts"
+        OTHER_CONTACTS: "__queryViaOtherContacts",
+        PEOPLE_CONNECTIONS_LIST: "__queryViaPeopleConnectionsList"
     };
 
     return BaseStore.extend({
@@ -2266,7 +2268,7 @@ Scoped.define("module:Stores.GooglePeopleStore", [
                 inherited.constructor.call(this);
                 this.__people = require("googleapis").google.people("v1");
                 this.__google = google;
-                this.__queryFunc = this[QUERY_MAP[queryType || "CONTACT_GROUPS_ALL"]];
+                this.__queryFunc = this[QUERY_MAP[queryType || "PEOPLE_CONNECTIONS_LIST"]];
             },
 
             _query_capabilities: function() {
@@ -2314,6 +2316,22 @@ Scoped.define("module:Stores.GooglePeopleStore", [
                 });
             },
 
+            ___peopleConnectionsList: function(maxMembers) {
+                return this.__execute(this.__people.people.connections, "list", {
+                    resourceName: "people/me",
+                    pageSize: maxMembers,
+                    personFields: FIELDS
+                });
+            },
+
+            ___peopleSearch: function(maxMembers, queryString) {
+                return this.__execute(this.__people.people, "searchContacts", {
+                    query: queryString,
+                    pageSize: maxMembers,
+                    readMask: FIELDS
+                });
+            },
+
             __queryViaContactGroupsAll: function(query, options) {
                 return this.___contactGroupsGet("contactGroups/all", options.limit || 50).mapSuccess(function(data) {
                     return this.___peopleGetBatchGet(data.data.memberResourceNames).mapSuccess(function(data) {
@@ -2326,6 +2344,18 @@ Scoped.define("module:Stores.GooglePeopleStore", [
                 return this.___otherContactsGet(options.limit || 50).mapSuccess(function(data) {
                     return data.data.otherContacts.map(this._decodePerson, this);
                 }, this);
+            },
+
+            __queryViaPeopleConnectionsList: function(query, options) {
+                if (Types.is_empty(query)) {
+                    return this.___peopleConnectionsList(options.limit || 50).mapSuccess(function(data) {
+                        return data.data.connections.map(this._decodePerson, this);
+                    }, this);
+                } else {
+                    return this.___peopleSearch(options.limit || 50, Objs.values(query).join(" ")).mapSuccess(function(data) {
+                        return data.data.results.map(this._decodePerson, this);
+                    }, this);
+                }
             },
 
             _query: function(query, options) {

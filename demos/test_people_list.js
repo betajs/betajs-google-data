@@ -9,7 +9,7 @@ var Google = require("googleapis");
 var google = new Google.google.auth.OAuth2(C.apiCredentials.client_id, C.apiCredentials.client_secret);
 google.setCredentials(C.userCredentials);
 
-var store = new BetaJS.Data.Google.Stores.GooglePeopleStore(google, "OTHER_CONTACTS");
+var store = new BetaJS.Data.Google.Stores.GooglePeopleStore(google, "PEOPLE_CONNECTIONS_LIST");
 
 store.query({}).success(function (iter) {
     console.log(iter.asArray());
