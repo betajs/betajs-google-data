@@ -1,5 +1,5 @@
 /*!
-betajs-google-data - v0.0.17 - 2021-03-23
+betajs-google-data - v0.0.18 - 2021-05-30
 Copyright (c) Oliver Friedmann
 Apache-2.0 Software License.
 */
@@ -12,8 +12,8 @@ Scoped.binding('data', 'global:BetaJS.Data');
 Scoped.define("module:", function () {
 	return {
     "guid": "40dfb24a-cf2c-4992-bf16-725d5177b5c9",
-    "version": "0.0.17",
-    "datetime": 1616555477053
+    "version": "0.0.18",
+    "datetime": 1622424564436
 };
 });
 Scoped.assumeVersion('base:version', '~1.0.96');
@@ -1336,13 +1336,16 @@ Scoped.define("module:Stores.GooglePeopleStore", [
             },
 
             __queryViaPeopleConnectionsList: function(query, options) {
-                if (Types.is_empty(query)) {
+                var q = Objs.uniqueValues(Objs.treeValues(query).filter(function(s) {
+                    return s && Types.is_string(s) && s.length > 1;
+                }));
+                if (q.length === 0) {
                     return this.___peopleConnectionsList(options.limit || 50).mapSuccess(function(data) {
-                        return data.data.connections.map(this._decodePerson, this);
+                        return data.data.connections ? data.data.connections.map(this._decodePerson, this) : [];
                     }, this);
                 } else {
-                    return this.___peopleSearch(options.limit || 50, Objs.values(query).join(" ")).mapSuccess(function(data) {
-                        return data.data.results.map(this._decodePerson, this);
+                    return this.___peopleSearch(options.limit || 50, q.join(" ")).mapSuccess(function(data) {
+                        return data.data.results ? data.data.results.map(this._decodePerson, this) : [];
                     }, this);
                 }
             },

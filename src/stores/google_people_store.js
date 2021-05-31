@@ -132,13 +132,16 @@ Scoped.define("module:Stores.GooglePeopleStore", [
             },
 
             __queryViaPeopleConnectionsList: function(query, options) {
-                if (Types.is_empty(query)) {
+                var q = Objs.uniqueValues(Objs.treeValues(query).filter(function(s) {
+                    return s && Types.is_string(s) && s.length > 1;
+                }));
+                if (q.length === 0) {
                     return this.___peopleConnectionsList(options.limit || 50).mapSuccess(function(data) {
-                        return data.data.connections.map(this._decodePerson, this);
+                        return data.data.connections ? data.data.connections.map(this._decodePerson, this) : [];
                     }, this);
                 } else {
-                    return this.___peopleSearch(options.limit || 50, Objs.values(query).join(" ")).mapSuccess(function(data) {
-                        return data.data.results.map(this._decodePerson, this);
+                    return this.___peopleSearch(options.limit || 50, q.join(" ")).mapSuccess(function(data) {
+                        return data.data.results ? data.data.results.map(this._decodePerson, this) : [];
                     }, this);
                 }
             },
