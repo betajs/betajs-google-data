@@ -11,7 +11,7 @@ google.setCredentials(C.userCredentials);
 var store = new BetaJS.Data.Google.Stores.GoogleMailStore(google);
 //var store = new BetaJS.Data.Google.Stores.GoogleCalendarStore(google, C.userEmail);
 
-store.query({primary:true}, {limit: 100}).success(function (iter) {
+store.query({archived:true}, {limit: 100}).success(function (iter) {
 	console.log(iter.asArray());
 }).error(function (e) {
 	console.log(e);
